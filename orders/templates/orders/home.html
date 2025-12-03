@@ -274,12 +274,20 @@
           <p class="font-heading text-base font-bold text-primary sm:text-lg">
             KSh {{ menu_item.price|floatformat:0 }}
           </p>
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-md transition hover:bg-[#e64500] sm:px-4 sm:py-2 sm:text-sm"
+          <form
+            method="post"
+            action="{% url 'orders:add_to_cart' menu_item.id %}"
+            class="inline"
           >
-            + Add
-          </button>
+            {% csrf_token %}
+            <input type="hidden" name="quantity" value="1" />
+            <button
+              type="submit"
+              class="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white shadow-md transition hover:bg-[#e64500] sm:px-4 sm:py-2 sm:text-sm"
+            >
+              + Add
+            </button>
+          </form>
         </div>
       </div>
     </article>

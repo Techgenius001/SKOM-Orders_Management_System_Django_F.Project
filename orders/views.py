@@ -1,5 +1,10 @@
+from django.contrib import messages
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 from django.views.generic import ListView, TemplateView
 
+from .cart import Cart
 from .models import MenuCategory, MenuItem
 
 
@@ -44,3 +49,82 @@ class MenuListView(ListView):
         context["selected_category"] = self.selected_category
         context["selected_tag"] = self.selected_tag
         return context
+
+
+
+# Cart Views
+@require_POST
+def add_to_cart(request, menu_item_id):
+    """Add a menu item to the cart."""
+    if not request.user.is_authenticated:
+        messages.warning(request, 'Please login to add items to cart.')
+        return redirect('login')
+    
+    cart = Cart(request)
+    menu_item = get_object_or_404(MenuItem, id=menu_item_id, is_available=True)
+    quantity = int(request.POST.get('quantity', 1))
+    
+    cart.add(menu_item=menu_item, quantity=quantity)
+    messages.success(request, f'{menu_item.name} added to cart!')
+    
+    # Return JSON for AJAX requests
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'cart_count': len(cart),
+            'message': f'{menu_item.name} added to cart!'
+        })
+    
+    return redirect(request.META.get('HTTP_REFERER', 'orders:home'))
+
+
+def view_cart(request):
+    """Display the shopping cart."""
+    cart = Cart(request)
+    return render(request, 'orders/cart.html', {'cart': cart})
+
+
+@require_POST
+def update_cart(request, menu_item_id):
+    """Update the quantity of a menu item in the cart."""
+    cart = Cart(request)
+    quantity = int(request.POST.get('quantity', 1))
+    
+    cart.update_quantity(menu_item_id, quantity)
+    messages.success(request, 'Cart updated!')
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'cart_count': len(cart),
+            'cart_total': str(cart.get_total_price())
+        })
+    
+    return redirect('orders:cart')
+
+
+@require_POST
+def remove_from_cart(request, menu_item_id):
+    """Remove a menu item from the cart."""
+    cart = Cart(request)
+    menu_item = get_object_or_404(MenuItem, id=menu_item_id)
+    
+    cart.remove(menu_item)
+    messages.success(request, f'{menu_item.name} removed from cart!')
+    
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({
+            'success': True,
+            'cart_count': len(cart),
+            'cart_total': str(cart.get_total_price())
+        })
+    
+    return redirect('orders:cart')
+
+
+def clear_cart(request):
+    """Clear all items from the cart."""
+    cart = Cart(request)
+    cart.clear()
+    messages.success(request, 'Cart cleared!')
+    return redirect('orders:cart')
