@@ -1,0 +1,82 @@
+{% extends "base.html" %} {% block title %}Create Account | SmartKibandaski{%
+endblock %} {% block content %}
+<section
+  class="grid gap-10 rounded-3xl bg-white/90 p-6 shadow-xl md:grid-cols-2 md:p-10"
+>
+  <div class="relative hidden overflow-hidden rounded-3xl bg-cream md:block">
+    <img
+      src="https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=700&q=80"
+      alt="Kenyan breakfast"
+      class="h-full w-full object-cover"
+    />
+    <div
+      class="absolute bottom-4 left-4 rounded-2xl bg-white/90 px-5 py-4 text-sm text-secondary shadow-lg"
+    >
+      <p class="font-heading text-base font-semibold text-charcoal">
+        SmartKibandaski
+      </p>
+      <p>Wholesome chapati & beans delivered in Thika.</p>
+    </div>
+  </div>
+  <div class="space-y-6">
+    <div class="space-y-2">
+      <p class="text-sm font-semibold uppercase tracking-widest text-primary">
+        Join SmartKibandaski
+      </p>
+      <h1 class="font-heading text-3xl font-semibold text-charcoal">
+        Create your delivery account
+      </h1>
+      <p>
+        Enjoy same-hour delivery from Smart Kibandaski Hotel straight to your
+        workplace.
+      </p>
+    </div>
+    <form method="post" class="space-y-4">
+      {% csrf_token %} {% if form.non_field_errors %}
+      <div
+        class="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700"
+      >
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %} {% for field in form %}
+      <div>
+        <label
+          class="block text-sm font-medium text-charcoal"
+          for="{{ field.id_for_label }}"
+          >{{ field.label }}</label
+        >
+        {% if field.name == 'password1' or field.name == 'password2' %}
+        <div class="relative">
+          {{ field }}
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 mr-3 text-sm font-semibold text-primary"
+            data-password-toggle="{{ field.id_for_label }}"
+          >
+            Show
+          </button>
+        </div>
+        {% else %} {{ field }} {% endif %} {% if field.help_text %}
+        <p class="text-xs text-secondary/70">{{ field.help_text }}</p>
+        {% endif %} {% for error in field.errors %}
+        <p class="text-xs text-red-600">{{ error }}</p>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      <button
+        class="w-full rounded-2xl bg-primary py-3 text-sm font-semibold text-white shadow-lg hover:bg-[#ff6a26]"
+      >
+        Create account
+      </button>
+    </form>
+    <p class="text-center text-sm text-secondary">
+      Already registered?
+      <a
+        href="{% url 'login' %}"
+        class="font-semibold text-primary hover:underline"
+        >Sign in</a
+      >
+    </p>
+  </div>
+</section>
+{% endblock %}

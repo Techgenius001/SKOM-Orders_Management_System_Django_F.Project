@@ -1,0 +1,9 @@
+{
+  "ignore": "H006,H030,H031",
+  "indent": 2,
+  "max_line_length": 120,
+  "format_css": false,
+  "format_js": false,
+  "profile": "django",
+  "exclude": "node_modules,.venv"
+}

@@ -1,0 +1,86 @@
+{% extends "base.html" %} {% block title %}Sign In | SmartKibandaski{% endblock
+%} {% block content %}
+<section
+  class="grid gap-10 rounded-3xl bg-white/90 p-6 shadow-xl md:grid-cols-2 md:p-10"
+>
+  <div class="relative hidden overflow-hidden rounded-3xl bg-cream md:block">
+    <img
+      src="https://images.unsplash.com/photo-1504753793650-d4a2b783c15e?auto=format&fit=crop&w=700&q=80"
+      alt="Kenyan dish"
+      class="h-full w-full object-cover"
+    />
+    <div
+      class="absolute top-4 left-4 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-primary shadow"
+    >
+      Fresh today · Pilau & beef stew
+    </div>
+  </div>
+  <div class="space-y-6">
+    <div class="space-y-2 text-center md:text-left">
+      <p class="text-sm font-semibold uppercase tracking-widest text-primary">
+        Karibu tena
+      </p>
+      <h1 class="font-heading text-3xl font-semibold text-charcoal">
+        Sign in to continue
+      </h1>
+      <p class="text-secondary">
+        Keep tabs on your SmartKibandaski orders and deliveries.
+      </p>
+    </div>
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %} {% if form.non_field_errors %}
+      <div
+        class="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700"
+      >
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+      <div>
+        <label
+          class="block text-sm font-medium text-charcoal"
+          for="{{ form.username.id_for_label }}"
+          >Username</label
+        >
+        {{ form.username }} {% for error in form.username.errors %}
+        <p class="text-xs text-red-600">{{ error }}</p>
+        {% endfor %}
+      </div>
+      <div>
+        <label
+          class="block text-sm font-medium text-charcoal"
+          for="{{ form.password.id_for_label }}"
+          >Password</label
+        >
+        <div class="relative">
+          {{ form.password }}
+          <button
+            type="button"
+            class="absolute inset-y-0 right-0 mr-3 text-sm font-semibold text-primary"
+            data-password-toggle="{{ form.password.id_for_label }}"
+          >
+            Show
+          </button>
+        </div>
+        {% for error in form.password.errors %}
+        <p class="text-xs text-red-600">{{ error }}</p>
+        {% endfor %}
+      </div>
+      <button
+        class="w-full rounded-2xl bg-primary py-3 text-sm font-semibold text-white shadow-lg hover:bg-[#ff6a26]"
+      >
+        Sign in
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-secondary">
+      Need an account?
+      <a
+        href="{% url 'accounts:signup' %}"
+        class="font-semibold text-primary hover:underline"
+        >Register</a
+      >
+    </p>
+  </div>
+</section>
+{% endblock %}
