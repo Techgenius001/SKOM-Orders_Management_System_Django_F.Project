@@ -1,12 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import models
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView, TemplateView
 
 from .cart import Cart
-from .models import MenuCategory, MenuItem
+from .models import MenuCategory, MenuItem, Order, OrderItem
 
 
 class HomeView(TemplateView):
@@ -154,7 +155,6 @@ def checkout(request):
     
     if request.method == 'POST':
         from .forms import CheckoutForm
-        from .models import Order, OrderItem
         
         form = CheckoutForm(request.POST)
         
@@ -193,7 +193,6 @@ def checkout(request):
 
 def order_success(request, order_id):
     """Order confirmation page."""
-    from .models import Order
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, 'orders/order_success.html', {'order': order})
 
@@ -201,12 +200,11 @@ def order_success(request, order_id):
 # Dashboard Views
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum, Count
+from .decorators import customer_required
 
-@login_required
+@customer_required
 def dashboard(request):
     """Customer dashboard home."""
-    from .models import Order
-    
     # Get user statistics
     orders = Order.objects.filter(user=request.user)
     total_orders = orders.count()
@@ -226,15 +224,14 @@ def dashboard(request):
     return render(request, 'orders/dashboard.html', context)
 
 
-@login_required
+@customer_required
 def order_history(request):
     """Customer order history."""
-    from .models import Order
     orders = Order.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'orders/order_history.html', {'orders': orders})
 
 
-@login_required
+@customer_required
 def profile(request):
     """Customer profile page."""
     if request.method == 'POST':
@@ -248,3 +245,167 @@ def profile(request):
         return redirect('orders:profile')
     
     return render(request, 'orders/profile.html')
+
+
+# Admin Dashboard Views
+from .decorators import admin_required
+from django.utils import timezone
+from datetime import timedelta
+
+@admin_required
+def admin_dashboard(request):
+    """Admin dashboard home with statistics."""
+    from accounts.models import User
+    
+    # Get statistics
+    all_orders = Order.objects.all()
+    total_orders = all_orders.count()
+    pending_orders = all_orders.filter(status__in=['pending', 'confirmed', 'preparing']).count()
+    
+    # Today's stats
+    today = timezone.now().date()
+    today_orders = all_orders.filter(created_at__date=today)
+    today_revenue = today_orders.aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Total customers
+    total_customers = User.objects.filter(role=User.Roles.CUSTOMER).count()
+    
+    # Recent orders
+    recent_orders = all_orders.order_by('-created_at')[:10]
+    
+    context = {
+        'total_orders': total_orders,
+        'pending_orders': pending_orders,
+        'today_revenue': today_revenue,
+        'today_orders': today_orders.count(),
+        'total_customers': total_customers,
+        'recent_orders': recent_orders,
+    }
+    
+    return render(request, 'orders/admin_dashboard.html', context)
+
+
+@admin_required
+def admin_orders(request):
+    """Admin order management page with filters."""
+    orders = Order.objects.all().select_related('user').prefetch_related('items')
+    
+    # Status filter
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    
+    # Date filter
+    date_filter = request.GET.get('date', '')
+    if date_filter:
+        from datetime import datetime
+        try:
+            filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            orders = orders.filter(created_at__date=filter_date)
+        except ValueError:
+            pass
+    
+    # Search filter
+    search = request.GET.get('search', '')
+    if search:
+        orders = orders.filter(
+            models.Q(order_number__icontains=search) |
+            models.Q(user__username__icontains=search) |
+            models.Q(user__first_name__icontains=search) |
+            models.Q(user__last_name__icontains=search)
+        )
+    
+    orders = orders.order_by('-created_at')
+    
+    context = {
+        'orders': orders,
+        'status_filter': status_filter,
+        'date_filter': date_filter,
+        'search': search,
+        'status_choices': Order.Status.choices,
+    }
+    
+    return render(request, 'orders/admin_orders.html', context)
+
+
+@admin_required
+def admin_menu(request):
+    """Admin menu management page."""
+    menu_items = MenuItem.objects.all().select_related('category').order_by('category', 'name')
+    categories = MenuCategory.objects.all()
+    
+    # Category filter
+    category_filter = request.GET.get('category', '')
+    if category_filter:
+        menu_items = menu_items.filter(category__slug=category_filter)
+    
+    # Search filter
+    search = request.GET.get('search', '')
+    if search:
+        menu_items = menu_items.filter(name__icontains=search)
+    
+    context = {
+        'menu_items': menu_items,
+        'categories': categories,
+        'category_filter': category_filter,
+        'search': search,
+    }
+    
+    return render(request, 'orders/admin_menu.html', context)
+
+
+@admin_required
+def admin_customers(request):
+    """Admin customer management page."""
+    from accounts.models import User
+    
+    customers = User.objects.filter(role=User.Roles.CUSTOMER).annotate(
+        total_orders=Count('orders'),
+        total_spent=Sum('orders__total_amount')
+    ).order_by('-total_spent')
+    
+    # Search filter
+    search = request.GET.get('search', '')
+    if search:
+        customers = customers.filter(
+            models.Q(username__icontains=search) |
+            models.Q(first_name__icontains=search) |
+            models.Q(last_name__icontains=search) |
+            models.Q(email__icontains=search)
+        )
+    
+    context = {
+        'customers': customers,
+        'search': search,
+    }
+    
+    return render(request, 'orders/admin_customers.html', context)
+
+
+@admin_required
+@require_POST
+def update_order_status(request, order_id):
+    """Update order status."""
+    order = get_object_or_404(Order, id=order_id)
+    new_status = request.POST.get('status')
+    
+    if new_status in dict(Order.Status.choices):
+        order.status = new_status
+        order.save()
+        messages.success(request, f'Order {order.order_number} status updated to {order.get_status_display()}')
+    else:
+        messages.error(request, 'Invalid status')
+    
+    return redirect('orders:admin_orders')
+
+
+@admin_required
+@require_POST
+def toggle_menu_availability(request, item_id):
+    """Toggle menu item availability."""
+    import json
+    menu_item = get_object_or_404(MenuItem, id=item_id)
+    data = json.loads(request.body)
+    menu_item.is_available = data.get('is_available', False)
+    menu_item.save()
+    return JsonResponse({'success': True})

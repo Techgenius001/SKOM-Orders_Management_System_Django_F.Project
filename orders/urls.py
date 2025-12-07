@@ -23,5 +23,13 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('orders/', views.order_history, name='order_history'),
     path('profile/', views.profile, name='profile'),
+    
+    # Admin Dashboard URLs
+    path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-dashboard/orders/', views.admin_orders, name='admin_orders'),
+    path('admin-dashboard/orders/<int:order_id>/update-status/', views.update_order_status, name='update_order_status'),
+    path('admin-dashboard/menu/', views.admin_menu, name='admin_menu'),
+    path('admin-dashboard/menu/<int:item_id>/toggle-availability/', views.toggle_menu_availability, name='toggle_menu_availability'),
+    path('admin-dashboard/customers/', views.admin_customers, name='admin_customers'),
 ]
 

@@ -26,3 +26,15 @@ class LoginView(DjangoLoginView):
 
     form_class = LoginForm
     template_name = 'registration/login.html'
+
+    def get_success_url(self):
+        """Redirect admin to admin dashboard, customers to customer dashboard."""
+        # Ignore 'next' parameter for role-based routing
+        # Superusers and staff should go to admin dashboard
+        if self.request.user.is_superuser or self.request.user.is_staff or self.request.user.is_admin_role:
+            return reverse_lazy('orders:admin_dashboard')
+        return reverse_lazy('orders:dashboard')
+    
+    def get_default_redirect_url(self):
+        """Override default redirect to use role-based routing."""
+        return self.get_success_url()
