@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+﻿#!/usr/bin/env bash
 # exit on error
 set -o errexit
 
@@ -17,4 +17,27 @@ if not User.objects.filter(username='admin').exists():
     print('Superuser created successfully')
 else:
     print('Superuser already exists')
+EOF
+
+# Create default menu categories
+python manage.py shell << EOF
+from orders.models import MenuCategory
+
+categories = [
+    {'name': 'Breakfast', 'description': 'Start your day with our delicious breakfast options'},
+    {'name': 'Lunch', 'description': 'Hearty lunch meals to keep you energized'},
+    {'name': 'Dinner', 'description': 'Satisfying dinner dishes for a perfect evening'},
+    {'name': 'Beverages', 'description': 'Refreshing drinks and beverages'},
+    {'name': 'Desserts', 'description': 'Sweet treats to end your meal'},
+]
+
+for cat_data in categories:
+    category, created = MenuCategory.objects.get_or_create(
+        name=cat_data['name'],
+        defaults={'description': cat_data['description']}
+    )
+    if created:
+        print(f'Created category: {cat_data[\"name\"]}')
+    else:
+        print(f'Category already exists: {cat_data[\"name\"]}')
 EOF
