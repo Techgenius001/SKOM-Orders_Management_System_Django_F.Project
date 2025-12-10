@@ -10,7 +10,7 @@ class Command(BaseCommand):
         
         # Delete Popular and New categories
         deleted_count, _ = MenuCategory.objects.filter(name__in=['Popular', 'New']).delete()
-        self.stdout.write(f"✓ Deleted {deleted_count} invalid categories (Popular/New)")
+        self.stdout.write("✓ Deleted {} invalid categories (Popular/New)".format(deleted_count))
         
         # Ensure standard categories exist
         standard_categories = [
@@ -25,15 +25,15 @@ class Command(BaseCommand):
             category, created = MenuCategory.objects.get_or_create(name=cat_name)
             if created:
                 created_count += 1
-                self.stdout.write(f"✓ Created category: {cat_name}")
+                self.stdout.write("✓ Created category: {}".format(cat_name))
         
         if created_count == 0:
             self.stdout.write("✓ All standard categories already exist")
         
         # Show final categories
         all_categories = MenuCategory.objects.all()
-        self.stdout.write(f"\nFinal categories ({all_categories.count()}):")
+        self.stdout.write("\nFinal categories ({}):".format(all_categories.count()))
         for cat in all_categories:
-            self.stdout.write(f"  - {cat.name}")
+            self.stdout.write("  - {}".format(cat.name))
         
         self.stdout.write(self.style.SUCCESS("\n✅ Categories fixed successfully!"))
