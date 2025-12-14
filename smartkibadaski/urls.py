@@ -26,9 +26,7 @@ urlpatterns = [
     path('', include('orders.urls')),
 ]
 
-# Serve media files in development and production
+# Serve media files in development only
+# In production, Cloudinary handles media file serving
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-else:
-    # For production, serve media files through Django (not recommended for high traffic)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

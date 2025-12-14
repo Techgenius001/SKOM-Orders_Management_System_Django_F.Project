@@ -55,8 +55,9 @@ INSTALLED_APPS = [
 try:
     import cloudinary_storage
     import cloudinary
-    INSTALLED_APPS.insert(-2, 'cloudinary_storage')
-    INSTALLED_APPS.insert(-2, 'cloudinary')
+    # Insert cloudinary_storage before django.contrib.staticfiles
+    INSTALLED_APPS.insert(-1, 'cloudinary_storage')
+    INSTALLED_APPS.insert(-1, 'cloudinary')
 except ImportError:
     pass
 
@@ -143,6 +144,10 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Override MEDIA_URL for Cloudinary in production
+if os.environ.get('RENDER') and all(CLOUDINARY_STORAGE.values()):
+    MEDIA_URL = f"https://res.cloudinary.com/{CLOUDINARY_STORAGE['CLOUD_NAME']}/"
+
 # Cloudinary configuration
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
@@ -162,6 +167,10 @@ if all(CLOUDINARY_STORAGE.values()):
         api_secret=CLOUDINARY_STORAGE['API_SECRET'],
         secure=True
     )
+    
+    # Set default file storage to Cloudinary when credentials are available
+    if os.environ.get('RENDER'):  # Only in production
+        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -197,8 +206,9 @@ if os.environ.get('RENDER'):
     DEBUG = False
     ALLOWED_HOSTS = [os.environ.get('RENDER_EXTERNAL_HOSTNAME'), 'localhost', '127.0.0.1']
     
-    # Use Cloudinary for media storage in production
+    # Use Cloudinary for media and static storage in production
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
     
     # Database - Keep SQLite for Render
     # Note: SQLite on Render is ephemeral and will reset on each deploy
