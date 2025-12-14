@@ -144,16 +144,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Override MEDIA_URL for Cloudinary in production
-if os.environ.get('RENDER') and all(CLOUDINARY_STORAGE.values()):
-    MEDIA_URL = f"https://res.cloudinary.com/{CLOUDINARY_STORAGE['CLOUD_NAME']}/"
-
 # Cloudinary configuration
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
     'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
 }
+
+# Override MEDIA_URL for Cloudinary in production
+if os.environ.get('RENDER') and all(CLOUDINARY_STORAGE.values()):
+    MEDIA_URL = f"https://res.cloudinary.com/{CLOUDINARY_STORAGE['CLOUD_NAME']}/"
 
 # Only configure Cloudinary if credentials are provided
 if all(CLOUDINARY_STORAGE.values()):
