@@ -168,9 +168,7 @@ if all(CLOUDINARY_STORAGE.values()):
         secure=True
     )
     
-    # Set default file storage to Cloudinary when credentials are available
-    if os.environ.get('RENDER'):  # Only in production
-        DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    # Cloudinary is configured - storage will be set in production block
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -206,9 +204,8 @@ if os.environ.get('RENDER'):
     DEBUG = False
     ALLOWED_HOSTS = [os.environ.get('RENDER_EXTERNAL_HOSTNAME'), 'localhost', '127.0.0.1']
     
-    # Use Cloudinary for media and static storage in production
+    # Use Cloudinary for media storage in production
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
-    STATICFILES_STORAGE = 'cloudinary_storage.storage.StaticHashedCloudinaryStorage'
     
     # Database - Keep SQLite for Render
     # Note: SQLite on Render is ephemeral and will reset on each deploy
@@ -219,7 +216,7 @@ if os.environ.get('RENDER'):
         }
     }
     
-    # Static files with WhiteNoise
+    # Static files with WhiteNoise (keep static files local for better performance)
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
     
