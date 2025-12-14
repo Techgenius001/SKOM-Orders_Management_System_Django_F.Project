@@ -44,5 +44,8 @@ urlpatterns = [
     # Admin Inquiries URLs
     path('admin-dashboard/inquiries/', views.admin_inquiries, name='admin_inquiries'),
     path('admin-dashboard/inquiries/<int:inquiry_id>/update-status/', views.update_inquiry_status, name='update_inquiry_status'),
+    
+    # Debug URL (REMOVE IN PRODUCTION)
+    path('debug/images/', views.debug_images, name='debug_images'),
 ]
 
