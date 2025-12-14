@@ -5,6 +5,7 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 
 
+
 class MenuCategory(models.Model):
     """High-level grouping for menu items (Breakfast, Lunch, etc.)."""
 

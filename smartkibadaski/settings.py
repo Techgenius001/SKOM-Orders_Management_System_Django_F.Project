@@ -43,6 +43,15 @@ INSTALLED_APPS = [
     'orders',
 ]
 
+# Add Cloudinary apps if available
+try:
+    import cloudinary_storage
+    import cloudinary
+    INSTALLED_APPS.insert(-2, 'cloudinary_storage')
+    INSTALLED_APPS.insert(-2, 'cloudinary')
+except ImportError:
+    pass
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -126,6 +135,26 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# Cloudinary configuration
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET'),
+}
+
+# Only configure Cloudinary if credentials are provided
+if all(CLOUDINARY_STORAGE.values()):
+    import cloudinary
+    import cloudinary.uploader
+    import cloudinary.api
+    
+    cloudinary.config(
+        cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+        api_key=CLOUDINARY_STORAGE['API_KEY'],
+        api_secret=CLOUDINARY_STORAGE['API_SECRET'],
+        secure=True
+    )
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -159,6 +188,9 @@ ADMIN_EMAIL = 'samuelnjhihia333@gmail.com'
 if os.environ.get('RENDER'):
     DEBUG = False
     ALLOWED_HOSTS = [os.environ.get('RENDER_EXTERNAL_HOSTNAME'), 'localhost', '127.0.0.1']
+    
+    # Use Cloudinary for media storage in production
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
     
     # Database - Keep SQLite for Render
     # Note: SQLite on Render is ephemeral and will reset on each deploy
