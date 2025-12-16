@@ -1,6 +1,5 @@
-{% extends "base.html" %}
-{% block title %}Quick Serve | Home{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% load cloudinary_tags %} {% block title %}Quick
+Serve | Home{% endblock %} {% block content %}
 <style>
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
@@ -246,7 +245,7 @@
       <div class="relative h-40 w-full overflow-hidden bg-gray-100 sm:h-44">
         {% if menu_item.image %}
         <img
-          src="{{ menu_item.image.url }}"
+          src="{{ menu_item.image|smart_image_url }}"
           alt="{{ menu_item.name }}"
           class="h-full w-full object-cover rounded-lg transition group-hover:scale-105"
         />

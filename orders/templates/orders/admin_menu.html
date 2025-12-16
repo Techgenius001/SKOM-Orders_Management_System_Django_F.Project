@@ -1,5 +1,6 @@
 ﻿{% extends 'admin_dashboard_base.html' %}
 {% load humanize %}
+{% load cloudinary_tags %}
 
 {% block title %}Menu Management{% endblock %}
 {% block page_title %}Menu Management{% endblock %}
@@ -41,7 +42,7 @@
     {% for item in menu_items %}
         <div class="bg-white rounded-lg shadow hover:shadow-lg transition">
             {% if item.image %}
-                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-48 object-cover rounded-t-lg">
+                <img src="{{ item.image|smart_image_url }}" alt="{{ item.name }}" class="w-full h-48 object-cover rounded-t-lg">
             {% else %}
                 <div class="w-full h-48 bg-gray-200 rounded-t-lg flex items-center justify-center">
                     <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

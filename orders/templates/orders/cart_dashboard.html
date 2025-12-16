@@ -1,3 +1,4 @@
+{% load cloudinary_tags %}
 {% extends "orders/dashboard_base.html" %} {% block title %}Shopping Cart -
 Quick Serve{% endblock %} {% block dashboard_content %}
 <div class="mx-auto max-w-4xl">
@@ -15,7 +16,7 @@ Quick Serve{% endblock %} {% block dashboard_content %}
         class="h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-gray-100"
       >
         {% if item.menu_item.image %}<img
-          src="{{ item.menu_item.image.url }}"
+          src="{{ item.menu_item.image|smart_image_url }}"
           alt="{{ item.menu_item.name }}"
           class="h-full w-full object-cover"
         />{% else %}
